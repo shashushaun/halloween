@@ -81,8 +81,8 @@
 
         function initObstacles() {
             obstacles = [];
-            // 障害物の数を大幅に削減（最大20個）
-            const maxObstacles = Math.min(20, Math.floor(width * height * 0.03));
+            // 障害物の数（最大20個）
+            const maxObstacles = Math.min(20, Math.floor(width * height * 0.06));
             for (let i = 0; i < maxObstacles; i++) {
                 let x, y;
                 do {
@@ -239,7 +239,7 @@
             const img = document.createElement('img');
             img.src = 'https://github.com/user-attachments/assets/9da7b7b9-383d-4749-bce6-a2d8dbbe4a3e';
             img.style.position = 'absolute';
-            img.style.top = '65%';
+            img.style.top = '75%';
             img.style.left = '50%';
             img.style.transform = 'translate(-50%, -50%)';
             img.style.width = '160px';
