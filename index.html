@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハロウィン仲間集めゲーム</title>
+    <style>
+        body { margin: 0; padding: 0; background: #0a0a0a; color: #fff; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        #game { position: relative; width: 400px; height: 400px; background: #1a1a1a; border: 4px solid #ff6a00; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 106, 0, 0.5); }
+        .player, .companion, .obstacle { position: absolute; font-size: 26px; transition: all 0.25s ease; }
+        .player { z-index: 10; }
+        .companion { z-index: 5; }
+        .obstacle { font-size: 32px; color: #4a4a4a; }
+        #controls { margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .row { display: flex; gap: 8px; }
+        button { background: #ff6a00; border: none; color: white; font-size: 18px; font-weight: bold; padding: 12px 20px; margin: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
+        button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        #message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: bold; color: #ffcc00; text-shadow: 2px 2px 4px #000; display: none; z-index: 30; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
+        .title { font-size: 24px; color: #ff6a00; text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
+        @media (max-width: 600px) { 
+            #game { width: 300px; height: 300px; } 
+            button { padding: 10px 16px; font-size: 16px; } 
+            .player, .companion { font-size: 22px; }
+            .obstacle { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="message"></div>
+    </div>
+    <div id="controls">
+        <div class="row">
+            <button id="up">↑</button>
+        </div>
+        <div class="row">
+            <button id="left">←</button>
+            <button id="down">↓</button>
+            <button id="right">→</button>
+        </div>
+        <div class="row">
+            <button id="start">スタート</button>
+            <button id="pause">ポーズ</button>
+        </div>
+    </div>
+    <script>
+        const game = document.getElementById('game');
+        let message = document.getElementById('message');
+        const startButton = document.getElementById('start');
+        const cellSize = 20;
+        let width = Math.floor(game.clientWidth / cellSize);
+        let height = Math.floor(game.clientHeight / cellSize);
+        let player = { x: Math.floor(width / 2), y: Math.floor(height / 2), dir: 'right' };
+        let companions = [];
+        let obstacles = [];
+        let target = null;
+        let targetIndex = 0;
+        const targets = ['🧛', '👻', '🧟‍♂️', '🧙‍♀️', '🐺', '🌟'];
+        let interval;
+        const speed = 220;
+        let isPaused = false;
+        let gameOver = false;
+        let gameStarted = false;
+        let targetMoveCounter = 0;
+
+        function createElement(className, innerHTML, x, y) {
+            const el = document.createElement('div');
+            el.className = className;
+            el.innerHTML = innerHTML;
+            el.style.left = `${x * cellSize}px`;
+            el.style.top = `${y * cellSize}px`;
+            game.appendChild(el);
+            return el;
+        }
+
+        function randomDir() {
+            const dirs = ['up', 'down', 'left', 'right'];
+            return dirs[Math.floor(Math.random() * 4)];
+        }
+
+        function initObstacles() {
+            obstacles = [];
+            // 障害物の数を大幅に削減（最大20個）
+            const maxObstacles = Math.min(20, Math.floor(width * height * 0.03));
+            for (let i = 0; i < maxObstacles; i++) {
+                let x, y;
+                do {
+                    x = Math.floor(Math.random() * width);
+                    y = Math.floor(Math.random() * height);
+                } while (
+                    (x === player.x && y === player.y) || 
+                    obstacles.some(o => o.x === x && o.y === y) ||
+                    Math.abs(x - player.x) < 3 && Math.abs(y - player.y) < 3 // プレイヤー近くは避ける
+                );
+                obstacles.push({ x, y, el: createElement('obstacle', '🌳', x, y) });
+            }
+        }
+
+        function spawnTarget() {
+            if (targetIndex >= targets.length) return;
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * width);
+                y = Math.floor(Math.random() * height);
+            } while (
+                obstacles.some(o => o.x === x && o.y === y) || 
+                (x === player.x && y === player.y) || 
+                companions.some(c => c.x === x && c.y === y)
+            );
+            target = { 
+                x, y, 
+                el: createElement('companion', targets[targetIndex], x, y),
+                isMoving: targetIndex === 5,
+                dir: randomDir()
+            };
+        }
+
+        function moveTarget() {
+            if (!target || !target.isMoving) return;
+            let dx = 0, dy = 0;
+            switch (target.dir) {
+                case 'up': dy = -1; break;
+                case 'down': dy = 1; break;
+                case 'left': dx = -1; break;
+                case 'right': dx = 1; break;
+            }
+            const newX = target.x + dx;
+            const newY = target.y + dy;
+            if (newX >= 0 && newX < width && newY >= 0 && newY < height &&
+                !obstacles.some(o => o.x === newX && o.y === newY) &&
+                !(player.x === newX && player.y === newY) &&
+                !companions.some(c => c.x === newX && c.y === newY)) {
+                target.x = newX;
+                target.y = newY;
+                target.el.style.left = `${target.x * cellSize}px`;
+                target.el.style.top = `${target.y * cellSize}px`;
+            } else {
+                target.dir = randomDir();
+            }
+        }
+
+        function move() {
+            if (isPaused || gameOver) return;
+
+            // ターゲットの移動（最後の🌟のみ）
+            if (target && target.isMoving) {
+                targetMoveCounter++;
+                if (targetMoveCounter % 3 === 0) moveTarget();
+            }
+
+            // プレイヤーの移動方向
+            let dx = 0, dy = 0;
+            switch (player.dir) {
+                case 'up': dy = -1; break;
+                case 'down': dy = 1; break;
+                case 'left': dx = -1; break;
+                case 'right': dx = 1; break;
+            }
+
+            if (dx === 0 && dy === 0) return;
+
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+            // 壁や障害物判定
+            if (newX < 0 || newX >= width || newY < 0 || newY >= height || 
+                obstacles.some(o => o.x === newX && o.y === newY)) {
+                endGame('ｹﾞｰﾑｵｰﾊﾞｰ☆');
+                return;
+            }
+
+            // ターゲット取得判定
+            let eat = target && target.x === newX && target.y === newY;
+
+            // 尾の位置を保存（仲間が増えるとき用）
+            let oldTailPos = companions.length > 0 
+                ? { x: companions[companions.length - 1].x, y: companions[companions.length - 1].y }
+                : { x: player.x, y: player.y };
+
+            // 仲間の移動（後ろから順に）
+            for (let i = companions.length - 1; i > 0; i--) {
+                companions[i].x = companions[i - 1].x;
+                companions[i].y = companions[i - 1].y;
+                companions[i].el.style.left = `${companions[i].x * cellSize}px`;
+                companions[i].el.style.top = `${companions[i].y * cellSize}px`;
+            }
+            if (companions.length > 0) {
+                companions[0].x = player.x;
+                companions[0].y = player.y;
+                companions[0].el.style.left = `${companions[0].x * cellSize}px`;
+                companions[0].el.style.top = `${companions[0].y * cellSize}px`;
+            }
+
+            // プレイヤー移動
+            player.x = newX;
+            player.y = newY;
+            player.el.style.left = `${player.x * cellSize}px`;
+            player.el.style.top = `${player.y * cellSize}px`;
+
+            // ターゲット取得処理
+            if (eat) {
+                const newCompanion = { 
+                    x: oldTailPos.x, y: oldTailPos.y, 
+                    el: target.el 
+                };
+                newCompanion.el.style.left = `${oldTailPos.x * cellSize}px`;
+                newCompanion.el.style.top = `${oldTailPos.y * cellSize}px`;
+                companions.push(newCompanion);
+                target = null;
+                targetIndex++;
+                if (targetIndex === targets.length) {
+                    endGame('おめでしょーん☆');
+                } else {
+                    setTimeout(spawnTarget, 500);
+                }
+            }
+        }
+
+        function endGame(msg) {
+            clearInterval(interval);
+            message.textContent = msg;
+            message.style.display = 'block';
+            gameOver = true;
+            startButton.textContent = 'リスタート';
+        }
+
+        function showStartScreen() {
+            game.innerHTML = '<div id="message"></div>';
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.innerHTML = 'しょーんの<br>ﾊﾛｳｨﾝ☆仲間集め';
+            title.style.position = 'absolute';
+            title.style.top = '25%';
+            title.style.left = '50%';
+            title.style.transform = 'translateX(-50%)';
+            game.appendChild(title);
+
+            const img = document.createElement('img');
+            img.src = 'https://pbs.twimg.com/profile_images/1975630462489157632/RTL49GDw_400x400.jpg';
+            img.style.position = 'absolute';
+            img.style.top = '65%';
+            img.style.left = '50%';
+            img.style.transform = 'translate(-50%, -50%)';
+            img.style.width = '160px';
+            img.style.borderRadius = '50%';
+            img.style.border = '4px solid #ff6a00';
+            img.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
+            game.appendChild(img);
+
+            message = document.getElementById('message');
+            message.style.display = 'none';
+        }
+
+        function startGame() {
+            width = Math.floor(game.clientWidth / cellSize);
+            height = Math.floor(game.clientHeight / cellSize);
+            game.innerHTML = '<div id="message"></div>';
+            message = document.getElementById('message');
+            message.style.display = 'none';
+            
+            player = { 
+                x: Math.floor(width / 2), 
+                y: Math.floor(height / 2), 
+                dir: 'right', 
+                el: createElement('player', '🎃', Math.floor(width / 2), Math.floor(height / 2)) 
+            };
+            companions = [];
+            targetIndex = 0;
+            targetMoveCounter = 0;
+            initObstacles();
+            spawnTarget();
+            clearInterval(interval);
+            interval = setInterval(move, speed);
+            isPaused = false;
+            gameOver = false;
+            if (!gameStarted) gameStarted = true;
+        }
+
+        // 初期画面
+        showStartScreen();
+
+        // イベントリスナー
+        startButton.addEventListener('click', startGame);
+        document.getElementById('pause').addEventListener('click', () => { 
+            isPaused = !isPaused; 
+            document.getElementById('pause').textContent = isPaused ? '再開' : 'ポーズ';
+        });
+
+        ['up', 'down', 'left', 'right'].forEach(dir => {
+            document.getElementById(dir).addEventListener('click', () => {
+                if (!isPaused && !gameOver) player.dir = dir;
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (isPaused || gameOver || !gameStarted) return;
+            const keyMap = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right'
+            };
+            if (keyMap[e.key]) {
+                e.preventDefault();
+                player.dir = keyMap[e.key];
+            }
+        });
+    </script>
+</body>
+</html>
