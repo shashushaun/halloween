@@ -6,7 +6,7 @@
     <title>ハロウィン仲間集めゲーム</title>
     <style>
         body { margin: 0; padding: 0; background: #0a0a0a; color: #fff; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #game { position: relative; width: 500px; height: 500px; background: #1a1a1a; border: 4px solid #ff6a00; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 106, 0, 0.5); }
+        #game { position: relative; width: 490px; height: 490px; background: #1a1a1a; border: 4px solid #ff6a00; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 106, 0, 0.5); }
         .player, .companion, .obstacle { position: absolute; font-size: 50px; transition: all 0.25s ease; }
         .player { z-index: 10; }
         .companion { z-index: 5; }
@@ -66,7 +66,7 @@
 '<img src="https://github.com/user-attachments/assets/6bb3d689-040e-491a-b37d-bb7d30387928" style="width:50px; height:50px; border-radius:50%;">', 
                          '🌟'];
         let interval;
-        const speed = 350;
+        const speed = 380;
         let isPaused = false;
         let gameOver = false;
         let gameStarted = false;
@@ -90,7 +90,7 @@
         function initObstacles() {
             obstacles = [];
             // 障害物の数（最大20個）
-            const maxObstacles = Math.min(20, Math.floor(width * height * 0.12));
+            const maxObstacles = Math.min(20, Math.floor(width * height * 0.15));
             for (let i = 0; i < maxObstacles; i++) {
                 let x, y;
                 do {
@@ -239,7 +239,7 @@
             title.className = 'title';
             title.innerHTML = 'しょーんの<br>ﾊﾛｳｨﾝ☆仲間集め';
             title.style.position = 'absolute';
-            title.style.top = '25%';
+            title.style.top = '10%';
             title.style.left = '50%';
             title.style.transform = 'translateX(-50%)';
             game.appendChild(title);
@@ -247,10 +247,10 @@
             const img = document.createElement('img');
             img.src = 'https://github.com/user-attachments/assets/9da7b7b9-383d-4749-bce6-a2d8dbbe4a3e';
             img.style.position = 'absolute';
-            img.style.top = '75%';
+            img.style.top = '65%';
             img.style.left = '50%';
             img.style.transform = 'translate(-50%, -50%)';
-            img.style.width = `${game.clientWidth * 0.8}px`;
+            img.style.width = `${game.clientWidth * 0.7}px`;
             img.style.borderRadius = '50%';
             img.style.border = '4px solid #ff6a00';
             img.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
