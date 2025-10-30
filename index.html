@@ -25,6 +25,7 @@
         button { background: #ff6a00; border: none; color: white; font-size: 18px; font-weight: bold; padding: 12px 20px; margin: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
         button:active { transform: translateY(2px); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         #message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: bold; color: #ffcc00; text-shadow: 2px 2px 4px #000; display: none; z-index: 30; animation: pulse 1.5s infinite; }
+        #clearImage { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 255, 0, 0.5); display: none; z-index: 35; }
         @keyframes pulse { 0%,100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
         .title { font-size: 24px; color: #ff6a00; text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
         @media (max-width: 600px) { 
@@ -55,6 +56,7 @@
     <script>
         const game = document.getElementById('game');
         let message = document.getElementById('message');
+        let clearImage;
         const startButton = document.getElementById('start');
         const cellSize = 50;
         let width = Math.floor(game.clientWidth / cellSize);
@@ -240,10 +242,22 @@
             message.style.display = 'block';
             gameOver = true;
             startButton.textContent = 'リスタート';
+            if (msg === 'おめでしょーん☆') {
+                setTimeout(() => {
+                    message.style.display = 'none';
+                    clearImage.style.display = 'block';
+                }, 2000);
+            }
         }
 
         function showStartScreen() {
             game.innerHTML = '<div id="message"></div>';
+            message = document.getElementById('message');
+            clearImage = document.createElement('img');
+            clearImage.id = 'clearImage';
+            clearImage.src = 'https://github.com/user-attachments/assets/4e805964-8bb2-49f4-9ebe-5688d1babcd6';
+            clearImage.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 255, 0, 0.5); display: none; z-index: 35;';
+            game.appendChild(clearImage);
             const title = document.createElement('div');
             title.className = 'title';
             title.innerHTML = 'しょーんの<br>ﾊﾛｳｨﾝ☆仲間集め';
@@ -265,7 +279,6 @@
             img.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
             game.appendChild(img);
 
-            message = document.getElementById('message');
             message.style.display = 'none';
         }
 
@@ -274,6 +287,11 @@
             height = Math.floor(game.clientHeight / cellSize);
             game.innerHTML = '<div id="message"></div>';
             message = document.getElementById('message');
+            clearImage = document.createElement('img');
+            clearImage.id = 'clearImage';
+            clearImage.src = 'https://github.com/user-attachments/assets/4e805964-8bb2-49f4-9ebe-5688d1babcd6';
+            clearImage.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 255, 0, 0.5); display: none; z-index: 35;';
+            game.appendChild(clearImage);
             message.style.display = 'none';
             
             player = { 
