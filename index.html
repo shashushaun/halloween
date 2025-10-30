@@ -6,11 +6,11 @@
     <title>ハロウィン仲間集めゲーム</title>
     <style>
         body { margin: 0; padding: 0; background: #0a0a0a; color: #fff; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        #game { position: relative; width: 400px; height: 400px; background: #1a1a1a; border: 4px solid #ff6a00; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 106, 0, 0.5); }
-        .player, .companion, .obstacle { position: absolute; font-size: 26px; transition: all 0.25s ease; }
+        #game { position: relative; width: 500px; height: 500px; background: #1a1a1a; border: 4px solid #ff6a00; border-radius: 10px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 106, 0, 0.5); }
+        .player, .companion, .obstacle { position: absolute; font-size: 50px; transition: all 0.25s ease; }
         .player { z-index: 10; }
         .companion { z-index: 5; }
-        .obstacle { font-size: 32px; color: #4a4a4a; }
+        .obstacle { color: #4a4a4a; }
         #controls { margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .row { display: flex; gap: 8px; }
         button { background: #ff6a00; border: none; color: white; font-size: 18px; font-weight: bold; padding: 12px 20px; margin: 0; border-radius: 8px; cursor: pointer; touch-action: manipulation; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
@@ -19,10 +19,9 @@
         @keyframes pulse { 0%,100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
         .title { font-size: 24px; color: #ff6a00; text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 2px #000; }
         @media (max-width: 600px) { 
-            #game { width: 300px; height: 300px; } 
+            #game { width: 400px; height: 400px; } 
             button { padding: 10px 16px; font-size: 16px; } 
-            .player, .companion { font-size: 22px; }
-            .obstacle { font-size: 28px; }
+            .player, .companion, .obstacle { font-size: 40px; }
         }
     </style>
 </head>
@@ -48,7 +47,7 @@
         const game = document.getElementById('game');
         let message = document.getElementById('message');
         const startButton = document.getElementById('start');
-        const cellSize = 20;
+        const cellSize = 50;
         let width = Math.floor(game.clientWidth / cellSize);
         let height = Math.floor(game.clientHeight / cellSize);
         let player = { x: Math.floor(width / 2), y: Math.floor(height / 2), dir: 'right' };
@@ -56,9 +55,18 @@
         let obstacles = [];
         let target = null;
         let targetIndex = 0;
-        const targets = ['🧛', '👻', '🧟‍♂️', '🧙‍♀️', '🐺', '🌟'];
+        const targets = ['<img src="https://github.com/user-attachments/assets/aefe430d-8b24-4501-9b29-d40ed182bc61" style="width:50px; height:50px; border-radius:50%;">', 
+
+'<img src="https://github.com/user-attachments/assets/aafb8e14-aa5c-438a-b88e-2cde181c5746" style="width:50px; height:50px; border-radius:50%;">', 
+
+'<img src="https://github.com/user-attachments/assets/e2b83c8c-46b4-4f46-969c-9d87a8e699dc" style="width:50px; height:50px; border-radius:50%;">', 
+
+'<img src="https://github.com/user-attachments/assets/8d636542-5b6d-4c26-b712-37964656c024" style="width:50px; height:50px; border-radius:50%;">', 
+
+'<img src="https://github.com/user-attachments/assets/6bb3d689-040e-491a-b37d-bb7d30387928" style="width:50px; height:50px; border-radius:50%;">', 
+                         '🌟'];
         let interval;
-        const speed = 220;
+        const speed = 350;
         let isPaused = false;
         let gameOver = false;
         let gameStarted = false;
@@ -82,7 +90,7 @@
         function initObstacles() {
             obstacles = [];
             // 障害物の数（最大20個）
-            const maxObstacles = Math.min(20, Math.floor(width * height * 0.06));
+            const maxObstacles = Math.min(20, Math.floor(width * height * 0.12));
             for (let i = 0; i < maxObstacles; i++) {
                 let x, y;
                 do {
@@ -231,9 +239,9 @@
             title.className = 'title';
             title.innerHTML = 'しょーんの<br>ﾊﾛｳｨﾝ☆仲間集め';
             title.style.position = 'absolute';
-            title.style.top = '10%';
-            title.style.left = '40%';
-            title.style.transform = 'translateX(-30%)';
+            title.style.top = '25%';
+            title.style.left = '50%';
+            title.style.transform = 'translateX(-50%)';
             game.appendChild(title);
 
             const img = document.createElement('img');
@@ -242,7 +250,7 @@
             img.style.top = '75%';
             img.style.left = '50%';
             img.style.transform = 'translate(-50%, -50%)';
-            img.style.width = '160px';
+            img.style.width = `${game.clientWidth * 0.8}px`;
             img.style.borderRadius = '50%';
             img.style.border = '4px solid #ff6a00';
             img.style.boxShadow = '0 0 15px rgba(255, 106, 0, 0.6)';
@@ -263,7 +271,7 @@
                 x: Math.floor(width / 2), 
                 y: Math.floor(height / 2), 
                 dir: 'right', 
-                el: createElement('player', '<img src="https://github.com/user-attachments/assets/9da7b7b9-383d-4749-bce6-a2d8dbbe4a3e" style="width:24px; height:24px; border-radius:50%;">', Math.floor(width / 2), Math.floor(height / 2)) 
+                el: createElement('player', '<img src="https://github.com/user-attachments/assets/9da7b7b9-383d-4749-bce6-a2d8dbbe4a3e" style="width:50px; height:50px; border-radius:50%;">', Math.floor(width / 2), Math.floor(height / 2)) 
             };
             companions = [];
             targetIndex = 0;
